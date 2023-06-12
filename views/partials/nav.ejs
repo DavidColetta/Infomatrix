@@ -1,12 +1,17 @@
 <nav>
   <div class="site-title">
     <a href="/"><h1>Infomatrix</h1></a>
-    <p><% if (user != null) %><%= user %></p>
+    <p><% if (name != null) %><%= name %></p>
   </div>
   <ul>
     <li><a href="/">Blogs</a></li>
     <li><a href="/about">About</a></li>
     <li><a href="/blogs/create">New Blog</a></li>
-    <li><a href="/logout">Log Out</a></li>
+    <% if (name) { %>
+      <li><a href="/logout">Log Out</a></li>
+    <% } else { %>
+      <li><a href="/login">Log In</a></li>
+      <li><a href="/register">Register</a></li>
+    <% } %>
   </ul>
 </nav>

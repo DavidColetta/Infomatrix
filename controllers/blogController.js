@@ -5,7 +5,7 @@ const User = require('../models/user');
 const blog_index = (req, res) => {
   Blog.find().sort({ createdAt: -1 })
     .then(result => {
-      res.render('index', { blogs: result, title: 'All blogs', tagsToSearch: [], user: req?.user?.username });
+      res.render('index', { blogs: result, title: 'All blogs', tagsToSearch: [], name: req?.user?.username });
     })
     .catch(err => {
       console.log(err);
@@ -16,17 +16,17 @@ const blog_details = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      res.render('details', { blog: result, title: 'Blog Details', user: req?.user?.username, user_id: req?.user?._id });
+      res.render('details', { blog: result, title: 'Blog Details', name: req?.user?.username, user_id: req?.user?._id });
     })
     .catch(err => {
       console.log(err);
-      res.render('404', { title: 'Blog not found', user: req?.user?.username });
+      res.render('404', { title: 'Blog not found', name: req?.user?.username });
     });
 }
 
 const blog_create_get = (req, res) => {
   if (!req.isAuthenticated()) res.redirect('/login');
-  res.render('create', { title: 'Create a new blog', user: req?.user?.username });
+  res.render('create', { title: 'Create a new blog', name: req?.user?.username });
 }
 
 const blog_create_post = (req, res) => {
@@ -59,7 +59,7 @@ const blog_tag_search = (req, res) => {
   }
   Blog.find().sort({ createdAt: -1 })
     .then(result => {
-      res.render('index', { blogs: result, title: 'All blogs', tagsToSearch: tagsSearch, user: req?.user?.username });
+      res.render('index', { blogs: result, title: 'All blogs', tagsToSearch: tagsSearch, name: req?.user?.username });
     })
     .catch(err => {
       console.log(err);
@@ -72,13 +72,13 @@ const blog_edit = (req, res) => {
   Blog.findById(id)
     .then(result => {
       if (req.user._id == result.createdById)
-        res.render('editdetails', { blog: result, title: 'Edit Blog Details', user: req?.user?.username });
+        res.render('editdetails', { blog: result, title: 'Edit Blog Details', name: req?.user?.username });
       else
         res.redirect('/blogs/'+id);
     })
     .catch(err => {
       console.log(err);
-      res.render('404', { title: 'Blog not found', user: req?.user?.username });
+      res.render('404', { title: 'Blog not found', name: req?.user?.username });
     });
 }
 
@@ -113,7 +113,7 @@ const blog_edit_post = (req, res) => {
     })
     .catch(err => {
       console.log(err);
-      res.render('404', { title: 'Blog not found', user: req?.user?.username });
+      res.render('404', { title: 'Blog not found', name: req?.user?.username });
     });
 }
 
@@ -135,7 +135,7 @@ const blog_delete = (req, res) => {
     })
     .catch(err => {
       console.log(err);
-      res.render('404', { title: 'Blog not found', user: req?.user?.username });
+      res.render('404', { title: 'Blog not found', name: req?.user?.username });
     });
 }
 

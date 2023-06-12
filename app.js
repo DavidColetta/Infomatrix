@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
-  res.render('login', {title: 'Login', user: null});
+  res.render('login', {title: 'Login', name: null});
 });
 
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
@@ -61,7 +61,7 @@ app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
 }));
 
 app.get('/register', checkNotAuthenticated, (req, res) => {
-  res.render('register', {title: 'Register', user: null});
+  res.render('register', {title: 'Register', name: null});
 });
 
 app.post('/register', checkNotAuthenticated, async (req, res) => {
@@ -87,7 +87,7 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
 });
 
 app.get('/logout', checkAuthenticated, (req, res) => {
-  res.render('logout', { title: 'Log Out', user: req?.user?.username });
+  res.render('logout', { title: 'Log Out', name: req?.user?.username });
 })
 
 app.delete('/logout', checkAuthenticated, (req, res) => {
@@ -98,7 +98,7 @@ app.delete('/logout', checkAuthenticated, (req, res) => {
 })
 
 app.get('/about', (req, res) => {
-  res.render('about', { title: 'About', user: req?.user?.username });
+  res.render('about', { title: 'About', name: req?.user?.username });
 });
 
 // blog routes
@@ -106,7 +106,7 @@ app.use('/blogs', blogRoutes);
 
 // 404 page
 app.use((req, res) => {
-  res.status(404).render('404', { title: '404', user: req?.user?.username });
+  res.status(404).render('404', { title: '404', name: req?.user?.username });
 });
 
 function checkAuthenticated(req, res, next) {
