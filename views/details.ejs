@@ -6,7 +6,8 @@
 
   <div class="details content">
     <h2><%= blog.title %></h2>
-    <h3><%= blog.snippet %></h3>
+    <!-- <h3><%= blog.snippet %></h3> -->
+    <% if (blog.createdBy != null) {%><h4>By: <%= blog.createdBy %></h4><% } %>
     <div class="content">
       <p><pre><%= blog.body %></pre></p>
     </div>
@@ -19,9 +20,9 @@
         <% } %>
       </small></i>
     </div>
-    <a class="delete" data-doc="<%= blog._id %>">
-      Edit
-    </a>
+    <% if (user_id == blog.createdById) {%>
+      <a class="delete" data-doc="<%= blog._id %>">Edit</a>
+    <% } %>
   </div>
 
   <%- include("./partials/footer.ejs") %>

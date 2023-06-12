@@ -54,7 +54,7 @@ app.get('/login', checkNotAuthenticated, (req, res) => {
   res.render('login', {title: 'Login', user: null});
 });
 
-app.post('/login', passport.authenticate('local', {
+app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
   successRedirect: '/blogs',
   failureRedirect: '/login',
   failureFlash: true 
@@ -64,7 +64,7 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
   res.render('register', {title: 'Register', user: null});
 });
 
-app.post('/register', async (req, res) => {
+app.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
     const hashed_password = await bcrypt.hash(req.body.password, 10);
     const user = new User({username: req.body.username, email: req.body.email, password: hashed_password});
@@ -90,7 +90,7 @@ app.get('/logout', checkAuthenticated, (req, res) => {
   res.render('logout', { title: 'Log Out', user: req?.user?.username });
 })
 
-app.delete('/logout', (req, res) => {
+app.delete('/logout', checkAuthenticated, (req, res) => {
   req.logout(function(err) {
     if (err) { console.log(err); }
     res.redirect('/login');

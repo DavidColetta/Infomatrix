@@ -18,6 +18,10 @@ const blogSchema = new Schema({
     type: String,
     required: true
   },
+  createdById: {
+    type: String,
+    required: true
+  },
   tags: [{
     type: String
   }]

@@ -1,5 +1,6 @@
 const { result } = require('lodash');
 const Blog = require('../models/blog');
+const User = require('../models/user');
 
 const blog_index = (req, res) => {
   Blog.find().sort({ createdAt: -1 })
@@ -15,7 +16,7 @@ const blog_details = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      res.render('details', { blog: result, title: 'Blog Details', user: req?.user?.username });
+      res.render('details', { blog: result, title: 'Blog Details', user: req?.user?.username, user_id: req.user._id });
     })
     .catch(err => {
       console.log(err);
@@ -28,7 +29,7 @@ const blog_create_get = (req, res) => {
 }
 
 const blog_create_post = (req, res) => {
-  const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username});
+  const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username, createdById: req.user._id});
   const tags = req.body.tags_combined.split(',');
   for (i = 0; i < tags.length; i++) {
     tags[i] = tags[i].trim();
@@ -67,7 +68,10 @@ const blog_edit = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      res.render('editdetails', { blog: result, title: 'Edit Blog Details', user: req?.user?.username });
+      if (req.user._id == result.createdById)
+        res.render('editdetails', { blog: result, title: 'Edit Blog Details', user: req?.user?.username });
+      else
+        res.redirect('/blogs/'+id);
     })
     .catch(err => {
       console.log(err);
@@ -77,23 +81,35 @@ const blog_edit = (req, res) => {
 
 const blog_edit_post = (req, res) => {
   const id = req.params.id;
-  const blog = new Blog(req.body);
-  blog._id = id;
-  blog.tags = [];
-  blog.isNew = false;
-  const tags = req.body.tags_combined.split(',');
-  for (i = 0; i < tags.length; i++) {
-    tags[i] = tags[i].trim();
-    if (tags[i].length > 0) {
-      blog.tags.push(tags[i]);
-    }
-  }
-  blog.save()
-    .then(result => {
-      res.redirect('/blogs/'+id);
+
+  Blog.findById(id)
+    .then(blog => {
+      if (req.user._id != blog.createdById) {
+        res.redirect('/blogs/'+id);
+        return;
+      }
+      blog.title = req.body.title;
+      blog.snippet = req.body.snippet;
+      blog.body = req.body.body;
+      blog.tags = [];
+      const tags = req.body.tags_combined.split(',');
+      for (i = 0; i < tags.length; i++) {
+        tags[i] = tags[i].trim();
+        if (tags[i].length > 0) {
+          blog.tags.push(tags[i]);
+        }
+      }
+      blog.save()
+        .then(result => {
+          res.redirect('/blogs/'+id);
+        })
+        .catch(err => {
+          console.log(err);
+        });
     })
     .catch(err => {
       console.log(err);
+      res.render('404', { title: 'Blog not found', user: req?.user?.username });
     });
 }
 
