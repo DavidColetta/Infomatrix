@@ -46,7 +46,7 @@ app.use((req, res, next) => {
 });
 
 // routes
-app.get('/', checkAuthenticated, (req, res) => {
+app.get('/', (req, res) => {
   res.redirect('/blogs');
 });
 
@@ -102,7 +102,7 @@ app.get('/about', (req, res) => {
 });
 
 // blog routes
-app.use('/blogs', checkAuthenticated, blogRoutes);
+app.use('/blogs', blogRoutes);
 
 // 404 page
 app.use((req, res) => {
