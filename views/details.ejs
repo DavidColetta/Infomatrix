@@ -20,7 +20,7 @@
         <% } %>
       </small></i>
     </div>
-    <% if (user_id != null && user_id == blog.createdById) {%>
+    <% if (user_id != null && (blog.createdById == null || user_id == blog.createdById)) {%>
       <a class="delete" data-doc="<%= blog._id %>">Edit</a>
     <% } %>
   </div>

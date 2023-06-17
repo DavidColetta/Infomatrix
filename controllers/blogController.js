@@ -105,7 +105,7 @@ const blog_edit = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      if (req.user._id == result.createdById) {
+      if (result.createdById == null || req.user._id == result.createdById) {
         Tag.find().then(tags =>
           res.render('editdetails', { blog: result, tags: tags, title: 'Edit Blog Details', name: req?.user?.username })
         );
@@ -127,9 +127,13 @@ const blog_edit_post = (req, res) => {
 
   Blog.findById(id)
     .then(blog => {
-      if (req.user._id != blog.createdById) {
+      if (req.user._id != blog.createdById && blog.createdById != null) {
         res.redirect('/blogs/'+id);
         return;
+      }
+      if (blog.createdById == null) {
+        blog.createdById = req.user._id;
+        blog.createdBy = req.user.username;
       }
       blog.title = req.body.title;
       blog.snippet = req.body.snippet;
@@ -207,7 +211,7 @@ const blog_delete = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
-      if (req.user._id == result.createdById) {//Execute Delete
+      if (result.createdById == null || req.user._id == result.createdById) {//Execute Delete
         //Delete from tags
         for (i = 0; i < result.tags.length; i++) {
           Tag.findOne({name: result.tags[i]}).then( tag => {
