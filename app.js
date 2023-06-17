@@ -11,7 +11,9 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 
-const User = require('./models/user');
+const User = require('./models/user')
+
+// fixTags();
 
 const initializePassport = require('./passport-config');
 initializePassport(passport);
@@ -123,4 +125,39 @@ function checkNotAuthenticated(req, res, next) {
   } else {
     res.redirect('/blogs');
   }
+}
+
+async function fixTags() {
+  const Blog = require('./models/blog');
+  const Tag = require('./models/tag');
+  //Delete all tags
+  await Tag.deleteMany({});
+  console.log("Deleted all tags");
+  //For each tag in each blog, create a tag if it doesn't exist. If it does exist, add the blog to the tag's blogs array
+  const blogs = await Blog.find().sort({ updatedAt: -1});
+  for (i = 0; i < blogs.length; i++) {
+    for (j = 0; j < blogs[i].tags.length; j++) {
+      const tag = await Tag.findOne({name: blogs[i].tags[j]}).catch(err => {
+        console.log(err);
+      });
+      if (tag == null) {
+        const newTag = new Tag({name: blogs[i].tags[j], blogs: [blogs[i]._id]});
+        await newTag.save().catch(err => {
+          console.log(err);
+        });
+        console.log("   Created tag " + blogs[i].tags[j]);
+      } else {
+        // if (!tag.blogs.includes(blog._id)) {
+          tag.blogs.push(blogs[i]._id);
+          await tag.save().catch(err => {
+            console.log(err);
+          });
+        // }
+        console.log("   Added blog to tag " + tag.name);
+      }
+    }
+    console.log(" Created all tags for blog " + blogs[i].title);
+  };
+  
+  console.log("Created tags for all blogs");
 }

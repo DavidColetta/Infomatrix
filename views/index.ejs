@@ -8,8 +8,13 @@
     <h3>Tags</h3>
     <input type="text" id="tag search" name="tag search">
     <button type="button" id="tag search button" onclick="searchTags()">Search</button>
+    <br>
+    <% tags.forEach(tag => { %>
+      <button type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
+    <% })  %>
 
     <script>
+      //Search on Enter
       var input = document.getElementById("tag search");
       input.addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
@@ -17,6 +22,7 @@
           document.getElementById("tag search button").click();
         }
       });
+      //Search
       function searchTags() {
         var input = document.getElementById("tag search");
         if (input.value.trim().length > 0)
@@ -24,17 +30,14 @@
         else
           window.location = "/blogs";
       }
+      function searchTag(tag) {
+        window.location = "/blogs/tags/" + tag;
+      }
     </script>
 
     <h2>All Blogs</h2>
 
-    <% var numBlogsDisplayed = 0; %>
     <% blogs.forEach(blog => { %>
-      <% var hasTag = true %>
-      <% tagsToSearch.forEach(tag => { %>
-        <% if (!blog.tags.includes(tag)) hasTag = false; %>
-      <% }) %>
-      <% if (hasTag) { numBlogsDisplayed += 1; %>
       <a class="single" href="/blogs/<%= blog._id %>">
         <h3 class="title"><%= blog.title %></h3>
         <p class="snippet"><%= blog.snippet %></p>
@@ -46,11 +49,7 @@
           <% } %>
         </small></i>
       </a>
-      <% } %>
     <% }) %>
-    <% if (numBlogsDisplayed == 0) { %>
-      <p>There are no blogs to display...</p>
-    <% } %>
     
   </div>
 

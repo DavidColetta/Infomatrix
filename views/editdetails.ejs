@@ -13,8 +13,28 @@
       <label for="body">Blog body:</label>
       <textarea id="body" name="body" required><%= blog.body %></textarea>
       <label for="tags_combined">Tags:</label>
-      <input type="text" id="tags_combined" name="tags_combined" placeholder="example, example2, example3", value="<% for (i = 0; i < blog.tags.length; i++) { %><%= blog.tags[i] %><% if (i != blog.tags.length - 1) { %>, <% }} %>">
+      <input type="text" id="tags_combined" name="tags_combined" placeholder="example, example2, example3">
+      <br>
+      <div id="list1" class="dropdown-check-list" tabindex="100">
+        <span class="anchor">Select Tags</span>
+        <ul class="items">
+          <% tags.forEach(tag => { %>
+            <li><input type="checkbox" name="tag_<%= tag.name %>" <% if (blog.tags.includes(tag.name)) { %> checked <% } %> /><%= tag.name %></li>
+          <% }); %>
+        </ul>
+      </div>
+      <br>
       <button>Save</button>
+
+      <script>
+        var checkList = document.getElementById('list1');
+        checkList.getElementsByClassName('anchor')[0].onclick = function(evt) {
+          if (checkList.classList.contains('visible'))
+            checkList.classList.remove('visible');
+          else
+            checkList.classList.add('visible');
+        }
+      </script>
 
       <script>
         //const trashcan = document.querySelector('del');

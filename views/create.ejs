@@ -14,7 +14,28 @@
       <textarea id="body" name="body" required></textarea>
       <label for="tags_combined">Tags:</label>
       <input type="text" id="tags_combined" name="tags_combined" placeholder="example, example2, example3">
+      <br>
+      <div id="list1" class="dropdown-check-list" tabindex="100">
+        <span class="anchor">Select Tags</span>
+        <ul class="items">
+          <% tags.forEach(tag => { %>
+            <li><input type="checkbox" name="tag_<%= tag.name %>" /><%= tag.name %></li>
+          <% }); %>
+        </ul>
+      </div>
+      <br> 
       <button>Submit</button>
+      <a href="/blogs">Cancel</a>
+
+      <script>
+        var checkList = document.getElementById('list1');
+        checkList.getElementsByClassName('anchor')[0].onclick = function(evt) {
+          if (checkList.classList.contains('visible'))
+            checkList.classList.remove('visible');
+          else
+            checkList.classList.add('visible');
+        }
+      </script>
     </form>
   </div>
 
