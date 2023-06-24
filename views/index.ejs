@@ -11,7 +11,7 @@
     <br>
     <% tags.forEach(tag => { %>
       <% if (tagQuery.length > 0 && tagQuery[0] == tag.name) { %>
-        <button style="background-color: yellow;" type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
+        <button style="background-color: yellow;" type="button" value="<%= tag.name %>" onclick="returnToBlogs()"><%= tag.name %></button>
       <% } else { %>
         <button type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
       <% } %>
@@ -24,7 +24,7 @@
       <% } for (i = 0; i < cotags.length; i++ ) { cotag = cotags[i]; %>
         <% if (tagQuery[0] != cotag) { %>
           <% if (tagQuery.includes(cotag)) { %>
-            <button style="background-color: yellow;" type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
+            <button style="background-color: yellow;" type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>')"><%= cotag %></button>
           <% } else { %>
             <button type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
         <% }} %>
@@ -50,6 +50,9 @@
       }
       function searchTag(tag) {
         window.location = "/blogs/tags/" + tag;
+      }
+      function returnToBlogs() {
+        window.location = "/blogs";
       }
     </script>
 

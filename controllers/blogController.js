@@ -29,15 +29,15 @@ const blog_tag_search = async (req, res) => {
       return;
     }
   }
-  var finalBlogsList = [];
+  var blogList = [];
   const cotags = [];
   for (i = 0; i < tagObjects.length; i++) {
     //Find blogs that all tags have in common
     if (i == 0) {
-      finalBlogsList = tagObjects[i].blogs;
+      blogList = tagObjects[i].blogs;
       //Add tags to cotags
-      for (j = 0; j < finalBlogsList.length; j++) {
-        var result = await Blog.findById(finalBlogsList[j], {_id: false, title:false, snippet:false, createdAt:false, updatedAt:false, createdBy:false, createdById:false})
+      for (j = 0; j < blogList.length; j++) {
+        var result = await Blog.findById(blogList[j], {_id: false, title:false, snippet:false, createdAt:false, updatedAt:false, createdBy:false, createdById:false})
         result.tags.forEach(tag => {
           if (!cotags.includes(tag)) {
             cotags.push(tag);
@@ -46,17 +46,16 @@ const blog_tag_search = async (req, res) => {
       }
       cotags.sort();
     } else {
-      finalBlogsList = finalBlogsList.filter(value => tagObjects[i].blogs.includes(value));
+      blogList = blogList.filter(value => tagObjects[i].blogs.includes(value));
     }
   }
   //Get blogs
-  finalBlogsList = await Blog.find({_id: finalBlogsList}, {body: false}).sort({ updatedAt: -1 }).catch(err => {
+  finalBlogList = await Blog.find({_id: blogList}, {body: false}).sort({ updatedAt: -1 }).catch(err => {
     console.log(err);
   });
-  console.log(cotags)
 
   const tags = await Tag.find().sort({ name: 1 });
-  res.render('index', { tagQuery: tagStrings, tags: tags, cotags: cotags, blogs: finalBlogsList, title: 'Blogs', name: req?.user?.username});
+  res.render('index', { tagQuery: tagStrings, tags: tags, cotags: cotags, blogs: finalBlogList, title: 'Blogs', name: req?.user?.username});
 }
 
 const blog_details = (req, res) => {
