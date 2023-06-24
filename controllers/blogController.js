@@ -16,44 +16,50 @@ const blog_index = async (req, res) => {
 
 const blog_tag_search = async (req, res) => {
   const tagStrings = req.params.tag.split(',');
-  const tagObjects = [];
   for (i = 0; i < tagStrings.length; i++) {
     tagStrings[i] = tagStrings[i].trim();
-    
-    tagObjects.push(await Tag.findOne({name: tagStrings[i]}).catch(err => {
-      console.log(err);
-    }))
-    if (tagObjects[i] == null) {
-      console.log("Tag not found");
-      res.render('404', { title: 'Tag not found', name: req?.user?.username });
-      return;
-    }
   }
+  const tagObjects = await Tag.find({name: {$in: tagStrings}});
+  //Order tagObjects by tagStrings
+  tagObjects.sort((a, b) => {
+    return indexOf(tagStrings, a.name) - indexOf(tagStrings, b.name);
+  });
   var blogList = [];
-  const cotags = [];
-  for (i = 0; i < tagObjects.length; i++) {
-    //Find blogs that all tags have in common
-    if (i == 0) {
-      blogList = tagObjects[i].blogs;
-      //Add tags to cotags
-      for (j = 0; j < blogList.length; j++) {
-        var result = await Blog.findById(blogList[j], {_id: false, title:false, snippet:false, createdAt:false, updatedAt:false, createdBy:false, createdById:false})
-        result.tags.forEach(tag => {
-          if (!cotags.includes(tag)) {
-            cotags.push(tag);
-          }
-        });
-      }
-      cotags.sort();
-    } else {
+  //Bloglist is the intersection of all blogs in each tag
+  if (tagObjects.length > 0) {
+    blogList = tagObjects[0].blogs;
+    for (i = 1; i < tagObjects.length; i++) {
       blogList = blogList.filter(value => tagObjects[i].blogs.includes(value));
     }
   }
-  //Get blogs
-  finalBlogList = await Blog.find({_id: blogList}, {body: false}).sort({ updatedAt: -1 }).catch(err => {
-    console.log(err);
-  });
+  
+  //Get blogs from blogList
+  const finalBlogList = await Blog.find({_id: {$in: blogList}}, {body: false}).sort({ updatedAt: -1 });
 
+  //Cotags is the union of all tags in each blog in tagObjects[0]
+  var cotags = [];
+  var blogsToFetchFromDatabase = [];
+  if (tagObjects.length > 0) {
+    var blogs = tagObjects[0].blogs;//Blogs in first tag
+    for (i = 0; i < blogs.length; i++) {
+      const blog = finalBlogList.find(value => value._id == blogs[i]);//Find blog in finalBlogList
+      if (blog == null) {
+        blogsToFetchFromDatabase.push(blogs[i]);//If blog not in finalBlogList, fetch from database
+      } else {
+        cotags = cotags.concat(blog.tags);//If blog in finalBlogList, add tags to cotags
+      }
+    }
+  }
+  //Get cotags from database
+  if (blogsToFetchFromDatabase.length > 0) {
+    const blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, snippet:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
+    for (i = 0; i < blogs.length; i++) {
+      cotags = cotags.concat(blogs[i].tags);//Add tags to cotags
+    }
+  }
+  cotags = [...new Set(cotags)];//Remove duplicates
+  //cotags = cotags.filter(value => !tagStrings.includes(value));//Remove tags in tagStrings
+  cotags.sort();//Sort cotags
   const tags = await Tag.find().sort({ name: 1 });
   res.render('index', { tagQuery: tagStrings, tags: tags, cotags: cotags, blogs: finalBlogList, title: 'Blogs', name: req?.user?.username});
 }
