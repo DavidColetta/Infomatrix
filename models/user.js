@@ -13,7 +13,10 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: true
-  }
+  },
+  blogs: [{
+    type: String
+  }]
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

@@ -4,10 +4,10 @@ const User = require('../models/user');
 const Tag = require('../models/tag');
 
 const blog_index = async (req, res) => {
-  const tags = await Tag.find()
+  const tags = await Tag.find().sort({ name: 1 });
   Blog.find().sort({ updatedAt: -1 })
     .then(result => {
-      res.render('index', { tags: tags, blogs: result, title: 'All blogs', name: req?.user?.username,  });
+      res.render('index', { tagQuery: [], tags: tags, blogs: result, title: 'All Blogs', name: req?.user?.username});
     })
     .catch(err => {
       console.log(err);
@@ -15,25 +15,35 @@ const blog_index = async (req, res) => {
 }
 
 const blog_tag_search = async (req, res) => {
-  const blogsWithTag = [];
-  tagObject = await Tag.findOne({name: req.params.tag}).catch(err => {
-    console.log(err);
-  });
-  if (tagObject == null) {
-    console.log("Tag not found");
-    res.render('404', { title: 'Tag not found', name: req?.user?.username });
-    return;
-  }
-  const tags = await Tag.find();
-  for (i = 0; i < tagObject.blogs.length; i++) {
-    blog = await Blog.findById(tagObject.blogs[i]).catch(err => {
+  const tagStrings = req.params.tag.split(',');
+  const tagObjects = [];
+  for (i = 0; i < tagStrings.length; i++) {
+    tagStrings[i] = tagStrings[i].trim();
+    
+    tagObjects.push(await Tag.findOne({name: tagStrings[i]}).catch(err => {
       console.log(err);
-    });
-    if (blog != null) {
-      blogsWithTag.push(blog);
+    }))
+    if (tagObjects[i] == null) {
+      console.log("Tag not found");
+      res.render('404', { title: 'Tag not found', name: req?.user?.username });
+      return;
     }
   }
-  res.render('index', { tags: tags, blogs: blogsWithTag, title: 'Blogs', name: req?.user?.username});
+  var finalBlogsList = [];
+  for (i = 0; i < tagObjects.length; i++) {
+    //Find blogs that all tags have in common
+    if (i == 0) {
+      finalBlogsList = tagObjects[i].blogs;
+    } else {
+      finalBlogsList = finalBlogsList.filter(value => tagObjects[i].blogs.includes(value));
+    }
+  }
+  //Get blogs
+  finalBlogsList = await Blog.find({_id: finalBlogsList}).sort({ updatedAt: -1 }).catch(err => {
+    console.log(err);
+  });
+  const tags = await Tag.find().sort({ name: 1 });
+  res.render('index', { tagQuery: tagStrings , tags: tags, blogs: finalBlogsList, title: 'Blogs', name: req?.user?.username});
 }
 
 const blog_details = (req, res) => {
@@ -63,6 +73,14 @@ const blog_create_post = (req, res) => {
     return res.redirect('/login');
   }
   const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username, createdById: req.user._id, tags: []});
+  //Save blog to user
+  User.findById(req.user._id).then(user => {
+    user.blogs.push(blog._id);
+    user.save().catch(err => {
+      console.log(err);
+    });
+  });
+  //Save blog to tags
   const tags = req.body.tags_combined.split(',');
   for (var element in req.body) {
     if (element.startsWith('tag_')) {
@@ -89,6 +107,8 @@ const blog_create_post = (req, res) => {
       })
     }
   });
+
+  //Save blog
   blog.save()
     .then(result => {
       res.redirect('/blogs');
@@ -134,6 +154,13 @@ const blog_edit_post = (req, res) => {
       if (blog.createdById == null) {
         blog.createdById = req.user._id;
         blog.createdBy = req.user.username;
+
+        User.findById(req.user._id).then(user => {
+          user.blogs.push(blog._id);
+          user.save().catch(err => {
+            console.log(err);
+          });
+        });
       }
       blog.title = req.body.title;
       blog.snippet = req.body.snippet;

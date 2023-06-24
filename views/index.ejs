@@ -12,6 +12,23 @@
     <% tags.forEach(tag => { %>
       <button type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
     <% })  %>
+    <% if (tagQuery.length > 0) { %>
+      <br>
+      Cotags:
+      <br>
+      <% const cotags = [] %>
+      <% blogs.forEach(blog => { %>
+        <% blog.tags.forEach(tag => { %>
+          <% if (!cotags.includes(tag)) { %>
+            <% cotags.push(tag); %>
+          <% } %>
+        <% }) %>
+      <% }) %>
+      <% cotags.forEach(cotag => { %>
+        <% if (tagQuery[0] != cotag) { %>
+          <button type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
+      <% } }) %>
+    <% } %>
 
     <script>
       //Search on Enter
