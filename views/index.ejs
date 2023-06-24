@@ -10,24 +10,25 @@
     <button type="button" id="tag search button" onclick="searchTags()">Search</button>
     <br>
     <% tags.forEach(tag => { %>
-      <button type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
+      <% if (tagQuery.length > 0 && tagQuery[0] == tag.name) { %>
+        <button style="background-color: yellow;" type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
+      <% } else { %>
+        <button type="button" value="<%= tag.name %>" onclick="searchTag(this.value)"><%= tag.name %></button>
+      <% } %>
     <% })  %>
-    <% if (tagQuery.length > 0) { %>
-      <br>
-      Cotags:
-      <br>
-      <% const cotags = [] %>
-      <% blogs.forEach(blog => { %>
-        <% blog.tags.forEach(tag => { %>
-          <% if (!cotags.includes(tag)) { %>
-            <% cotags.push(tag); %>
-          <% } %>
-        <% }) %>
-      <% }) %>
-      <% cotags.forEach(cotag => { %>
+    <% if (tagQuery.length > 0) { %> <!-- If there is a tag query, show all other tags as well -->
+      <% if (cotags.length > 0) { %>
+        <br>
+        Cotags:
+        <br>
+      <% } for (i = 0; i < cotags.length; i++ ) { cotag = cotags[i]; %>
         <% if (tagQuery[0] != cotag) { %>
-          <button type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
-      <% } }) %>
+          <% if (tagQuery.includes(cotag)) { %>
+            <button style="background-color: yellow;" type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
+          <% } else { %>
+            <button type="button" value="<%= cotag %>" onclick="searchTag('<%= tagQuery[0]%>,' + this.value)"><%= cotag %></button>
+        <% }} %>
+      <% } %>
     <% } %>
 
     <script>
