@@ -53,7 +53,7 @@ const blog_tag_search = async (req, res) => {
   }
   //Get cotags from database
   if (blogsToFetchFromDatabase.length > 0) {
-    var blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, snippet:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
+    var blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
     blogs = blogs.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
     for (i = 0; i < blogs.length; i++) {
       cotags = cotags.concat(blogs[i].tags);//Add tags to cotags
@@ -96,7 +96,7 @@ const blog_create_post = (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect('/login');
   }
-  const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username, public: req.body.public != null, createdById: req.user._id, tags: []});
+  const blog = new Blog({title: req.body.title, body: req.body.body, createdBy: req.user.username, public: req.body.public != null, createdById: req.user._id, tags: []});
   //Save blog to user
   User.findById(req.user._id).then(user => {
     user.blogs.push(blog._id);
@@ -189,7 +189,6 @@ const blog_edit_post = (req, res) => {
         });
       }
       blog.title = req.body.title;
-      blog.snippet = req.body.snippet;
       blog.body = req.body.body;
       blog.public = req.body.public != null;
       const tags = req.body.tags_combined.split(',');

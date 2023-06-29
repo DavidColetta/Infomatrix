@@ -61,7 +61,6 @@
     <% blogs.forEach(blog => { %>
       <a class="single" href="/blogs/<%= blog._id %>">
         <h3 class="title"><%= blog.title %></h3>
-        <p class="snippet"><%= blog.snippet %></p>
         <p><small><% if (blog.createdBy != null) {%>By: <%= blog.createdBy %><% } %></small></p>
         <% if (!blog.public) { %>
           <i><small>( Private )</small></i>
