@@ -19,7 +19,7 @@ const initializePassport = require('./passport-config');
 initializePassport(passport);
 
 // connect to mongodb & listen for requests
-const dbURI = "mongodb+srv://davidkcoletta:JEhDFGfijrFt6INq@cluster0.khih3bl.mongodb.net/?retryWrites=true&w=majority";
+const dbURI = process.env.MONGODB_URI;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(result => app.listen(3000))

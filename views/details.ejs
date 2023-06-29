@@ -11,6 +11,10 @@
     <div class="content">
       <p><pre><%= blog.body %></pre></p>
     </div>
+    <% if (!blog.public) { %>
+      <i><small>( Private )</small></i>
+    <% } %>
+    <p><small><%= blog.createdAt.toDateString() %></small></p>
     <br>
     <div>
       <i><small>
