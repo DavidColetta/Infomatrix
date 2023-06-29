@@ -1,6 +1,8 @@
 <html lang="en">
 <%- include("./partials/head.ejs") %>
 
+<% const BodyLength = 350; %>
+
 <body>
   <%- include("./partials/nav.ejs") %>
 
@@ -61,6 +63,11 @@
     <% blogs.forEach(blog => { %>
       <a class="single" href="/blogs/<%= blog._id %>">
         <h3 class="title"><%= blog.title %></h3>
+        <% if (blog.body.length < BodyLength) { %>
+          <p><pre><%= blog.body %></pre></p>
+        <% } else { %>
+          <p><pre><%= blog.body.substring(0, BodyLength-2) %>...</pre></p>
+        <% } %>
         <p><small><% if (blog.createdBy != null) {%>By: <%= blog.createdBy %><% } %></small></p>
         <% if (!blog.public) { %>
           <i><small>( Private )</small></i>

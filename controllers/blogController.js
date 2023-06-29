@@ -4,10 +4,20 @@ const User = require('../models/user');
 const Tag = require('../models/tag');
 
 const blog_index = async (req, res) => {
-  const tags = await Tag.find().sort({ name: 1 });
-  Blog.find({}, {body: false}).sort({ updatedAt: -1 })
+  var tags = await Tag.find().sort({ name: 1 });
+  Blog.find().sort({ updatedAt: -1 })
     .then(result => {
       const blogs = result.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
+      //Remove tags from tags if they have no public blogs
+      tags = tags.filter(tag => {
+        for (i = 0; i < tag.blogs.length; i++) {
+          const blog = blogs.find(value => value._id == tag.blogs[i]);
+          if (blog != null && (blog.public || (req?.user?._id == blog.createdById))) {
+            return true;
+          }
+        }
+        return false;
+      });
       res.render('index', { tagQuery: [], tags: tags, cotags:[], blogs: blogs, title: 'All Blogs', name: req?.user?.username});
     })
     .catch(err => {
@@ -20,7 +30,21 @@ const blog_tag_search = async (req, res) => {
   for (i = 0; i < tagStrings.length; i++) {
     tagStrings[i] = tagStrings[i].trim();
   }
-  const tagObjects = await Tag.find({name: {$in: tagStrings}});
+  var allBlogs = await Blog.find().sort({ updatedAt: -1 });
+  allBlogs = allBlogs.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
+  //Remove tags from alltags if they have no public blogs
+  var allTags = await Tag.find().sort({ name: 1 });
+  allTags = allTags.filter(tag => {
+    for (i = 0; i < tag.blogs.length; i++) {
+      const blog = allBlogs.find(value => value._id == tag.blogs[i]);
+      if (blog != null && (blog.public || (req?.user?._id == blog.createdById))) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  const tagObjects = allTags.filter(tag => tagStrings.includes(tag.name));
   //Order tagObjects by tagStrings
   tagObjects.sort((a, b) => {
     return indexOf(tagStrings, a.name) - indexOf(tagStrings, b.name);
@@ -35,35 +59,25 @@ const blog_tag_search = async (req, res) => {
   }
   
   //Get blogs from blogList
-  var finalBlogList = await Blog.find({_id: {$in: blogList}}, {body: false}).sort({ updatedAt: -1 });
-  finalBlogList = finalBlogList.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
+  const finalBlogList = allBlogs.filter(blog => blogList.includes(blog._id));
   //Cotags is the union of all tags in each blog in tagObjects[0]
   var cotags = [];
   var blogsToFetchFromDatabase = [];
   if (tagObjects.length > 0) {
     var blogs = tagObjects[0].blogs;//Blogs in first tag
     for (i = 0; i < blogs.length; i++) {
-      const blog = finalBlogList.find(value => value._id == blogs[i]);//Find blog in finalBlogList
+      const blog = allBlogs.find(value => value._id == blogs[i]);//Find blog in finalBlogList
       if (blog == null) {
-        blogsToFetchFromDatabase.push(blogs[i]);//If blog not in finalBlogList, fetch from database
+        console.log("Blog not found!!!" + blogs[i]);
       } else {
         cotags = cotags.concat(blog.tags);//If blog in finalBlogList, add tags to cotags
       }
     }
   }
-  //Get cotags from database
-  if (blogsToFetchFromDatabase.length > 0) {
-    var blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
-    blogs = blogs.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
-    for (i = 0; i < blogs.length; i++) {
-      cotags = cotags.concat(blogs[i].tags);//Add tags to cotags
-    }
-  }
   cotags = [...new Set(cotags)];//Remove duplicates
   //cotags = cotags.filter(value => !tagStrings.includes(value));//Remove tags in tagStrings
   cotags.sort();//Sort cotags
-  const tags = await Tag.find().sort({ name: 1 });
-  res.render('index', { tagQuery: tagStrings, tags: tags, cotags: cotags, blogs: finalBlogList, title: 'Blogs', name: req?.user?.username});
+  res.render('index', { tagQuery: tagStrings, tags: allTags, cotags: cotags, blogs: finalBlogList, title: 'Blogs', name: req?.user?.username});
 }
 
 const blog_details = (req, res) => {
