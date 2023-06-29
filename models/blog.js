@@ -22,6 +22,10 @@ const blogSchema = new Schema({
     type: String,
     required: true
   },
+  public: {
+    type: Boolean,
+    required: true
+  },
   tags: [{
     type: String
   }]

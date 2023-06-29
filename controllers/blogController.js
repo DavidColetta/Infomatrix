@@ -7,7 +7,8 @@ const blog_index = async (req, res) => {
   const tags = await Tag.find().sort({ name: 1 });
   Blog.find({}, {body: false}).sort({ updatedAt: -1 })
     .then(result => {
-      res.render('index', { tagQuery: [], tags: tags, cotags:[], blogs: result, title: 'All Blogs', name: req?.user?.username});
+      const blogs = result.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
+      res.render('index', { tagQuery: [], tags: tags, cotags:[], blogs: blogs, title: 'All Blogs', name: req?.user?.username});
     })
     .catch(err => {
       console.log(err);
@@ -34,8 +35,8 @@ const blog_tag_search = async (req, res) => {
   }
   
   //Get blogs from blogList
-  const finalBlogList = await Blog.find({_id: {$in: blogList}}, {body: false}).sort({ updatedAt: -1 });
-
+  var finalBlogList = await Blog.find({_id: {$in: blogList}}, {body: false}).sort({ updatedAt: -1 });
+  finalBlogList = finalBlogList.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
   //Cotags is the union of all tags in each blog in tagObjects[0]
   var cotags = [];
   var blogsToFetchFromDatabase = [];
@@ -52,7 +53,8 @@ const blog_tag_search = async (req, res) => {
   }
   //Get cotags from database
   if (blogsToFetchFromDatabase.length > 0) {
-    const blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, snippet:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
+    var blogs = await Blog.find({_id: {$in: blogsToFetchFromDatabase}}, {_id:0, title:0, snippet:0, body:0, createdBy:0, createdById:0, createdAt:0, updatedAt:0, __v:0});//Fetch blogs from database
+    blogs = blogs.filter(blog => (blog.public || (req?.user?._id == blog.createdById)));
     for (i = 0; i < blogs.length; i++) {
       cotags = cotags.concat(blogs[i].tags);//Add tags to cotags
     }
@@ -68,6 +70,10 @@ const blog_details = (req, res) => {
   const id = req.params.id;
   Blog.findById(id)
     .then(result => {
+      if (!result.public && req?.user?._id != result.createdById) {
+        res.render('404', { title: 'Blog not found', name: req?.user?.username });
+        return;
+      }
       res.render('details', { blog: result, title: 'Blog Details', name: req?.user?.username, user_id: req?.user?._id });
     })
     .catch(err => {
@@ -90,7 +96,7 @@ const blog_create_post = (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect('/login');
   }
-  const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username, createdById: req.user._id, tags: []});
+  const blog = new Blog({title: req.body.title, snippet: req.body.snippet, body: req.body.body, createdBy: req.user.username, public: req.body.public != null, createdById: req.user._id, tags: []});
   //Save blog to user
   User.findById(req.user._id).then(user => {
     user.blogs.push(blog._id);
@@ -144,9 +150,11 @@ const blog_edit = (req, res) => {
   Blog.findById(id)
     .then(result => {
       if (result.createdById == null || req.user._id == result.createdById) {
-        Tag.find().then(tags =>
+        Tag.find().sort({ name: 1 }).then(tags => {
           res.render('editdetails', { blog: result, tags: tags, title: 'Edit Blog Details', name: req?.user?.username })
-        );
+        }).catch(err => {
+          console.log(err);
+        });
       } else {
         res.redirect('/blogs/'+id);
       }
@@ -183,6 +191,7 @@ const blog_edit_post = (req, res) => {
       blog.title = req.body.title;
       blog.snippet = req.body.snippet;
       blog.body = req.body.body;
+      blog.public = req.body.public != null;
       const tags = req.body.tags_combined.split(',');
       for (var element in req.body) {
         if (element.startsWith('tag_')) {

@@ -12,6 +12,8 @@
       <input type="text" id="snippet" name="snippet" value="<%= blog.snippet %>" required>
       <label for="body">Blog body:</label>
       <textarea id="body" name="body" required><%= blog.body %></textarea>
+      <label for="public">Public:</label>
+      <input type="checkbox" id="public" name="public" value="true" <% if (blog.public) { %> checked <% } %>>
       <label for="tags_combined">Tags:</label>
       <input type="text" id="tags_combined" name="tags_combined" placeholder="example, example2, example3">
       <br>
