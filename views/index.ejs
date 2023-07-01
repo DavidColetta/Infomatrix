@@ -68,11 +68,11 @@
         <% } else { %>
           <p><pre><%= blog.body.substring(0, BodyLength-2) %>...</pre></p>
         <% } %>
-        <p><small><% if (blog.createdBy != null) {%>By: <%= blog.createdBy %><% } %></small></p>
+        <small><% if (blog.createdBy != null) {%>By <%= blog.createdBy %><% } %></small> |
         <% if (!blog.public) { %>
-          <i><small>( Private )</small></i>
+          <i><small>(Private)</small></i> |
         <% } %>
-        <p><small><%= blog.createdAt.toDateString() %></small></p>
+        <small><%= blog.createdAt.toDateString() %></small> |
         <i><small>
           <% for (i = 0; i < blog.tags.length; i++) { %>
             <%= blog.tags[i] %><% if (i != blog.tags.length - 1) { %>,
