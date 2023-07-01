@@ -11,6 +11,7 @@ const app = express();
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const methodOverride = require('method-override');
 
 const User = require('./models/user')
@@ -31,15 +32,31 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended: false}));
 app.use(flash());
-app.use(session({
+
+const options = {
+  mongoUrl: dbURI,
+  collectionName: 'sessions',
+  ttl: 14 * 24 * 60 * 60, // = 14 days. Default
+  autoRemove: 'native', // Default
+  autoRemoveInterval: 10, // In minutes. Default
   secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: false,
   cookie: {
     sameSite: `${inProd ? "none" : "lax"}`, // cross site // set lax while working with http:localhost, but none when in prod
     secure: `${inProd ? "true" : "auto"}`, // only https // auto when in development, true when in prod
     maxAge: 1000 * 60 * 60 * 24 * 14, // expiration time
   },
+};
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create(options),
+  // cookie: {
+  //   sameSite: `${inProd ? "none" : "lax"}`, // cross site // set lax while working with http:localhost, but none when in prod
+  //   secure: `${inProd ? "true" : "auto"}`, // only https // auto when in development, true when in prod
+  //   maxAge: 1000 * 60 * 60 * 24 * 14, // expiration time
+  // },
 }));
 app.use(passport.initialize());
 app.use(passport.session());
