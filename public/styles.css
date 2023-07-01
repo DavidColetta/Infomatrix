@@ -83,8 +83,10 @@
 
     /* create styles */
     .create-blog form{
-      max-width: 400px;
+      /* max-width: 400px; */
       margin: 0 auto;
+      margin-bottom: auto;
+      /* display: inline-block; */
     }
     .create-blog input text,
     .create-blog textarea{
@@ -98,7 +100,8 @@
       margin-top: 24px;
     }
     textarea{
-      height: 120px;
+      height: 50%;
+      width: max-content;
     }
     .create-blog button{
       margin-top: 20px;
