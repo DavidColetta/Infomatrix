@@ -60,7 +60,12 @@ app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
   successRedirect: '/blogs',
   failureRedirect: '/login',
   failureFlash: true 
-}));
+}), (req, res) => {
+  //Save session as cookie
+  if (req.body.remember) {
+    req.session.cookie.originalMaxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+  }
+});
 
 app.get('/register', checkNotAuthenticated, (req, res) => {
   res.render('register', {title: 'Register', name: null});
