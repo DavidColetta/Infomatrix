@@ -1,4 +1,6 @@
-if (process.env.NODE_ENV !== 'production') { require('dotenv').config() }
+const inProd = process.env.NODE_ENV === 'production';
+console.log("In production: " + inProd);
+if (!inProd) { require('dotenv').config() }
 
 const express = require('express');
 const morgan = require('morgan');
@@ -31,8 +33,13 @@ app.use(express.urlencoded({extended: false}));
 app.use(flash());
 app.use(session({
   secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
+  resave: true,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: `${inProd ? "none" : "lax"}`, // cross site // set lax while working with http:localhost, but none when in prod
+    secure: `${inProd ? "true" : "auto"}`, // only https // auto when in development, true when in prod
+    maxAge: 1000 * 60 * 60 * 24 * 14, // expiration time
+  },
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -56,16 +63,13 @@ app.get('/login', checkNotAuthenticated, (req, res) => {
   res.render('login', {title: 'Login', name: null});
 });
 
+//Authenticate login with passport
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
   successRedirect: '/blogs',
   failureRedirect: '/login',
-  failureFlash: true 
-}), (req, res) => {
-  //Save session as cookie
-  if (req.body.remember) {
-    req.session.cookie.originalMaxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-  }
-});
+  failureFlash: true,
+  session: true
+}));
 
 app.get('/register', checkNotAuthenticated, (req, res) => {
   res.render('register', {title: 'Register', name: null});
